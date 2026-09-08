@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Year</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0b1310;
+    --bg-deep-pink:#160f13;
+    --bg-mid:#132019;
+    --bg-mid-2:#0f1a15;
+    --gold:#c99a4a;
+    --gold-bright:#f0cf8f;
+    --parchment:#f1e8d6;
+    --muted:#87998f;
+    --green:#6fa287;
+    --green-bright:#a3d9bb;
+    --pink:#e3a0b0;
+    --pink-bright:#f6c9d6;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    /* the whole site, split down the middle: her half warm and pink,
+       my half green — one page, made of the two of us */
+    background:linear-gradient(90deg,
+      var(--bg-deep) 0%, var(--bg-deep) 45%,
+      var(--bg-deep-pink) 55%, var(--bg-deep-pink) 100%);
+    color:var(--parchment);
+    font-family:'Inter', sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+    scroll-snap-type:y proximity;
+  }
+  ::selection{background:var(--pink); color:var(--bg-deep);}
+
+  /* ---------- ambient background video ----------
+     Sits beneath the color wash, the rails, and every chapter — dimmed
+     down so it never competes for attention, just quietly there. */
+  #bg-video{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+    opacity:0.16;
+    filter:saturate(0.75) brightness(0.5);
+    pointer-events:none;
+  }
+
+  h1,h2,h3,.serif{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    letter-spacing:0.01em;
+  }
+  .verse{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:400;
+    color:var(--pink-bright);
+  }
+  .verse-ref{
+    display:block;
+    font-family:'Inter', sans-serif;
+    font-style:normal;
+    font-size:0.8rem;
+    color:var(--muted);
+    margin-top:0.6rem;
+    letter-spacing:0.03em;
+  }
+
+  /* ---------- side photo rails ---------- */
+  .side-rail{
+    position:fixed;
+    top:0;
+    width:clamp(130px, 15vw, 230px);
+    height:100vh;
+    overflow:hidden;
+    z-index:1;
+    pointer-events:none;
+  }
+  .side-rail-left{
+    left:0;
+    -webkit-mask-image:linear-gradient(to right, black 62%, transparent 100%);
+    mask-image:linear-gradient(to right, black 62%, transparent 100%);
+  }
+  .side-rail-right{
+    right:0;
+    -webkit-mask-image:linear-gradient(to left, black 62%, transparent 100%);
+    mask-image:linear-gradient(to left, black 62%, transparent 100%);
+  }
+  .side-rail::before, .side-rail::after{
+    content:"";
+    position:absolute; left:0; right:0; height:16vh; z-index:2;
+  }
+  .side-rail-left::before{ top:0; background:linear-gradient(180deg, var(--bg-deep), transparent); }
+  .side-rail-left::after{ bottom:0; background:linear-gradient(0deg, var(--bg-deep), transparent); }
+  .side-rail-right::before{ top:0; background:linear-gradient(180deg, var(--bg-deep-pink), transparent); }
+  .side-rail-right::after{ bottom:0; background:linear-gradient(0deg, var(--bg-deep-pink), transparent); }
+
+  /* a quiet wash of colour over each column — green for you on the
+     left, pink for her on the right, an even, literal mesh of the two */
+  .rail-tint{
+    position:absolute; inset:0; z-index:1;
+    mix-blend-mode:overlay;
+    pointer-events:none;
+  }
+  .rail-tint-green{ background:var(--green); opacity:0.24; }
+  .rail-tint-pink{ background:var(--pink); opacity:0.24; }
+
+  .rail-track{
+    position:absolute;
+    left:0; right:0; top:0;
+    display:flex;
+    flex-direction:column;
+    gap:0.9rem;
+    padding:1.1rem 0.7rem;
+    will-change:transform;
+  }
+  .rail-tile{
+    position:relative;
+    width:100%;
+    border-radius:16px;
+    overflow:hidden;
+    flex-shrink:0;
+    line-height:0;
+    background:var(--bg-mid);
+    box-shadow:0 10px 26px rgba(0,0,0,0.4);
+  }
+  .rail-tile img{
+    width:100%; height:auto;
+    display:block;
+    filter:saturate(0.95) brightness(0.88);
+  }
+
+  @media (max-width: 1120px){
+    .side-rail{ display:none; }
+  }
+
+  main#journey{
+    position:relative;
+    z-index:2;
+    max-width:700px;
+    margin:0 auto;
+  }
+
+  /* ---------- growth indicator ----------
+     Tucked in the top-right corner, outside the centered text column,
+     with just enough of a card behind it to stay readable against
+     any photo or gradient — never over the title, never over a button. */
+  #growth-indicator-wrap{
+    position:fixed;
+    top:1.2rem;
+    right:1.2rem;
+    z-index:50;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.3rem;
+    padding:0.55rem 0.9rem 0.45rem;
+    background:rgba(11,19,16,0.6);
+    border:1px solid rgba(163,217,187,0.18);
+    border-radius:14px;
+    box-shadow:-6px -6px 20px rgba(111,162,135,0.14), 6px 6px 20px rgba(227,160,176,0.14);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    pointer-events:none;
+  }
+  #growth-indicator{ width:min(22vw, 110px); height:auto; display:block; }
+  #growth-indicator *{ transition:all 1.4s ease; }
+  #growth-label{
+    font-family:'Inter', sans-serif;
+    font-size:0.6rem;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  @media (max-width: 560px){
+    #growth-indicator-wrap{ top:0.7rem; right:0.7rem; padding:0.4rem 0.7rem 0.35rem; }
+    #growth-indicator{ width:min(18vw, 84px); }
+  }
+
+  /* ---------- growth-indicator tooltip (shown once, after the first scroll) ---------- */
+  #growth-tooltip{
+    position:fixed;
+    top:10.6rem;
+    right:1.2rem;
+    z-index:60;
+    width:min(60vw, 230px);
+    background:rgba(11,19,16,0.94);
+    border:1px solid rgba(163,217,187,0.25);
+    border-radius:12px;
+    padding:0.9rem 1.5rem 0.9rem 1rem;
+    box-shadow:0 16px 36px rgba(0,0,0,0.5);
+    opacity:0;
+    transform:translateY(-8px);
+    transition:opacity 0.6s ease, transform 0.6s ease;
+    pointer-events:none;
+  }
+  #growth-tooltip.shown{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  #growth-tooltip::before{
+    content:"";
+    position:absolute;
+    top:-7px;
+    right:2.4rem;
+    width:13px; height:13px;
+    background:rgba(11,19,16,0.94);
+    border-left:1px solid rgba(163,217,187,0.25);
+    border-top:1px solid rgba(163,217,187,0.25);
+    transform:rotate(45deg);
+  }
+  #growth-tooltip p{
+    margin:0;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:0.92rem;
+    line-height:1.45;
+    color:var(--parchment);
+  }
+  #growth-tooltip .tooltip-hint{
+    display:block;
+    margin-top:0.5rem;
+    font-family:'Inter', sans-serif;
+    font-style:normal;
+    font-size:0.64rem;
+    letter-spacing:0.07em;
+    text-transform:uppercase;
+    color:var(--pink-bright);
+  }
+  #growth-tooltip-close{
+    position:absolute;
+    top:0.35rem;
+    right:0.5rem;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:0.95rem;
+    line-height:1;
+    padding:0.2rem;
+    cursor:pointer;
+  }
+
+  @media (max-width: 560px){
+    #growth-tooltip{ top:8rem; right:0.7rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #growth-tooltip{ transition:none !important; }
+  }
+
+  /* ---------- background audio toggle ---------- */
+  #audio-toggle{
+    position:fixed;
+    bottom:1.2rem;
+    left:1.2rem;
+    z-index:50;
+    width:42px; height:42px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(11,19,16,0.6);
+    border:1px solid rgba(163,217,187,0.18);
+    border-radius:50%;
+    box-shadow:-4px -4px 16px rgba(111,162,135,0.14), 4px 4px 16px rgba(227,160,176,0.14);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    color:var(--pink-bright);
+    cursor:pointer;
+    transition:transform 0.3s ease, color 0.3s ease;
+  }
+  #audio-toggle:hover{ transform:scale(1.08); }
+  #audio-toggle svg{ width:18px; height:18px; display:block; }
+
+  @media (max-width: 560px){
+    #audio-toggle{ bottom:0.7rem; left:0.7rem; width:36px; height:36px; }
+    #audio-toggle svg{ width:16px; height:16px; }
+  }
+
+  /* ---------- chapter scaffolding ---------- */
+  .chapter{
+    min-height:100vh;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    z-index:2;
+    scroll-snap-align:start;
+    padding:8vh 7vw;
+    text-align:center;
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity 1.1s ease, transform 1.1s ease;
+  }
+  .chapter.in-view{ opacity:1; transform:translateY(0); }
+
+  /* ---------- title chapter ---------- */
+  .title-chapter{background:radial-gradient(ellipse at 50% 40%, rgba(7,8,8,0.28) 0%, rgba(7,8,8,0.5) 70%);}
+  .title-chapter .eyebrow{ color:var(--muted); font-size:0.95rem; letter-spacing:0.06em; margin-bottom:1.4rem; }
+  .title-chapter h1{ font-size:clamp(2.6rem, 8vw, 5rem); color:var(--parchment); line-height:1.05; }
+  .title-chapter .names{ margin-top:1.4rem; font-size:clamp(1.1rem, 3vw, 1.5rem); color:var(--pink-bright); }
+  .title-chapter .verse{ margin-top:2.6rem; font-size:clamp(1.05rem, 2.6vw, 1.3rem); max-width:34ch; line-height:1.6; }
+  .scroll-cue{ position:absolute; bottom:6vh; font-size:0.85rem; color:var(--muted); letter-spacing:0.04em; }
+
+  /* ---------- text / reflection chapters ----------
+     kept neutral (not green- or pink-tinted) on purpose, so the page's
+     own green-left / pink-right split shows through underneath instead
+     of every chapter re-tinting itself green */
+  .text-chapter{ background:linear-gradient(180deg, rgba(7,8,8,0.22) 0%, rgba(7,8,8,0.48) 100%); }
+  .text-chapter .label{ color:var(--green-bright); font-size:0.95rem; letter-spacing:0.05em; margin-bottom:1.6rem; }
+  .text-chapter h2{ font-size:clamp(1.8rem, 5vw, 2.8rem); max-width:18ch; margin-bottom:1.2rem; }
+  .text-chapter p{ max-width:42ch; font-size:clamp(1rem, 2.4vw, 1.15rem); line-height:1.75; color:var(--parchment); }
+  .text-chapter p + p{margin-top:1.1rem;}
+  .text-chapter .verse{ max-width:38ch; }
+  .emphasis{ color:var(--pink-bright); }
+
+  .triangle-diagram{ margin:2rem auto; width:min(70vw, 260px); height:auto; }
+  .triangle-diagram text{ font-family:'Inter', sans-serif; font-size:9px; fill:var(--muted); letter-spacing:0.03em; }
+  .triangle-diagram .you-label{ fill:var(--green); }
+  .triangle-diagram .her-label{ fill:var(--pink); }
+
+  .cross-ornament{ margin:1.6rem auto; opacity:0.85; }
+
+  /* ---------- mini question (thanksgiving) ---------- */
+  .mini-question{ margin-top:2.4rem; display:flex; flex-direction:column; align-items:center; }
+  .mini-question .q-buttons{ display:flex; gap:1rem; margin-top:1rem; }
+  .mini-question button{
+    padding:0.6rem 1.6rem;
+    background:transparent;
+    border:1px solid var(--green);
+    color:var(--pink-bright);
+    font-family:'Cormorant Garamond', serif;
+    font-size:1rem;
+    font-style:italic;
+    border-radius:2px;
+    cursor:pointer;
+    transition:background 0.35s ease, color 0.35s ease;
+  }
+  .mini-question button:hover{ background:linear-gradient(120deg, var(--green), var(--pink)); color:var(--bg-deep); }
+  .mini-question .q-reveal{
+    margin-top:1.2rem; font-size:1.05rem; max-width:30ch; line-height:1.6;
+    opacity:0; max-height:0; overflow:hidden; transition:opacity 0.9s ease;
+  }
+  .mini-question .q-reveal.shown{ opacity:1; max-height:200px; }
+
+  /* ---------- final chapter ---------- */
+  .final-chapter{
+    background:rgba(11,19,16,0.94);
+    overflow:hidden;
+  }
+  #final-video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+    opacity:0.5;
+    filter:saturate(0.85) brightness(0.62);
+    transition:opacity 2s ease;
+  }
+  #final-video.dissolved{ opacity:0; }
+  .final-scrim{
+    position:absolute;
+    inset:0;
+    z-index:1;
+    background:radial-gradient(ellipse at 50% 50%, rgba(227,160,176,0.14) 0%, rgba(11,19,16,0.55) 55%, rgba(11,19,16,0.9) 100%);
+    pointer-events:none;
+  }
+  .final-chapter > *:not(#final-video):not(.final-scrim){ position:relative; z-index:2; }
+  .final-chapter .label{ color:var(--green-bright); font-size:0.95rem; letter-spacing:0.05em; margin-bottom:1.4rem; }
+  .final-chapter h2{ font-size:clamp(2rem, 6vw, 3.2rem); max-width:18ch; line-height:1.2; }
+  .final-chapter h2 .aside{
+    display:block;
+    margin-top:0.7rem;
+    font-size:0.4em;
+    font-style:italic;
+    font-weight:400;
+    color:var(--pink-bright);
+    letter-spacing:0.01em;
+  }
+  #final-answer{
+    margin-top:2.2rem; padding:0.9rem 2.2rem; background:transparent;
+    border:1px solid var(--green); color:var(--pink-bright);
+    font-family:'Cormorant Garamond', serif; font-size:1.15rem; font-style:italic;
+    letter-spacing:0.02em; border-radius:2px; cursor:pointer;
+    transition:background 0.4s ease, color 0.4s ease;
+  }
+  #final-answer:hover{ background:linear-gradient(120deg, var(--green), var(--pink)); color:var(--bg-deep); }
+  #final-reveal{
+    margin-top:2.2rem; font-size:clamp(1.2rem, 3.4vw, 1.7rem); color:var(--parchment);
+    max-width:28ch; line-height:1.5; opacity:0; max-height:0; overflow:hidden; transition:opacity 1s ease;
+  }
+  #final-reveal.shown{ opacity:1; max-height:400px; margin-top:2.2rem; }
+
+  @media (prefers-reduced-motion: reduce){
+    .chapter, #final-reveal, .q-reveal, #growth-indicator *{ transition:none !important; }
+    .rail-track{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="side-rail side-rail-left" aria-hidden="true">
+  <div class="rail-track" id="rail-track-left"></div>
+  <div class="rail-tint rail-tint-green"></div>
+</div>
+<div class="side-rail side-rail-right" aria-hidden="true">
+  <div class="rail-track" id="rail-track-right"></div>
+  <div class="rail-tint rail-tint-pink"></div>
+</div>
+
+<div id="growth-indicator-wrap">
+  <svg id="growth-indicator" viewBox="0 0 100 100">
+    <line id="sideL" x1="20" y1="78" x2="50" y2="18" stroke="var(--green)" stroke-width="1" stroke-opacity="0.4"/>
+    <line id="sideR" x1="80" y1="78" x2="50" y2="18" stroke="var(--pink)" stroke-width="1" stroke-opacity="0.4"/>
+    <line id="baseLine" x1="20" y1="78" x2="80" y2="78" stroke="var(--muted)" stroke-width="1" stroke-opacity="0.4"/>
+    <circle id="dotL" cx="20" cy="78" r="3" fill="var(--green)"/>
+    <circle id="dotR" cx="80" cy="78" r="3" fill="var(--pink)"/>
+    <g id="apexCross" transform="translate(50,18) scale(0.5)">
+      <line x1="0" y1="-4.5" x2="0" y2="4.5" stroke="var(--gold-bright)" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="-3" y1="-1.8" x2="3" y2="-1.8" stroke="var(--gold-bright)" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+  </svg>
+  <p id="growth-label">drawing near</p>
+</div>
+
+<div id="growth-tooltip">
+  <button id="growth-tooltip-close" aria-label="Close">&times;</button>
+  <p>That little triangle up there is us &mdash; you, me, and God at the top. It moves as you scroll, closer together the further we've come.</p>
+  <span class="tooltip-hint">keep scrolling to watch it change</span>
+</div>
+
+<video id="bg-video" src="video/Bill%20Withers%20-%20Just%20The%20Two%20Of%20Us%20%20(official%20video).mp4" loop playsinline preload="auto" aria-hidden="true"></video>
+<button id="audio-toggle" aria-label="Toggle background sound" aria-pressed="true">
+  <svg viewBox="0 0 24 24">
+    <path d="M4 9v6h4l5 5V4L8 9H4z" fill="currentColor"/>
+    <path id="audio-wave1" d="M15.3 8.6a5 5 0 0 1 0 6.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path id="audio-wave2" d="M17.8 6.1a8.5 8.5 0 0 1 0 11.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <line id="audio-mute-slash" x1="3" y1="21" x2="21" y2="3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="display:none"/>
+  </svg>
+</button>
+
+<main id="journey">
+
+  <!-- CHAPTER: TITLE -->
+  <section class="chapter title-chapter" data-growth="0.03">
+    <p class="eyebrow">One year ago, we sat by the water</p>
+    <h1 id="title-name">One Year</h1>
+    <p class="names" id="title-names"></p>
+    <p class="verse">"Bless the Lord, O my soul, and all that is within me, bless His holy name."<span class="verse-ref">Psalm 103:1</span></p>
+    <p class="scroll-cue">scroll, when you're ready</p>
+  </section>
+
+  <!-- CHAPTER: THE TRIANGLE, INTRODUCED -->
+  <section class="chapter text-chapter" data-growth="0.12" id="chapter-triangle-intro">
+    <p class="label">Somewhere along the way</p>
+    <h2>We were told about a triangle</h2>
+    <svg class="triangle-diagram" viewBox="0 0 200 160">
+      <line x1="40" y1="130" x2="100" y2="26" stroke="var(--green)" stroke-width="1" stroke-opacity="0.4"/>
+      <line x1="160" y1="130" x2="100" y2="26" stroke="var(--pink)" stroke-width="1" stroke-opacity="0.4"/>
+      <line x1="40" y1="130" x2="160" y2="130" stroke="var(--muted)" stroke-width="1" stroke-opacity="0.4"/>
+      <g transform="translate(100,26) scale(0.7)">
+        <line x1="0" y1="-6" x2="0" y2="6" stroke="var(--gold-bright)" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+        <line x1="-4" y1="-2.5" x2="4" y2="-2.5" stroke="var(--gold-bright)" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+      </g>
+      <circle cx="40" cy="130" r="6" fill="var(--green)"/>
+      <circle cx="160" cy="130" r="6" fill="var(--pink)"/>
+      <text x="40" y="148" text-anchor="middle" class="you-label">YOU</text>
+      <text x="160" y="148" text-anchor="middle" class="her-label">HER</text>
+    </svg>
+    <p>Two people, reaching for each other, and God at the top — far off, small, easy to lose sight of when you're not looking for Him.</p>
+    <p>We were young in this. Like children, Paul would say — tossed to and fro.</p>
+  </section>
+
+  <!-- CHAPTER: THE PRINCIPLE -->
+  <section class="chapter text-chapter" data-growth="0.4">
+    <p class="label">What the priests kept telling us</p>
+    <h2>Don't reach for each other. Reach for Him.</h2>
+    <p class="verse">"Till we all come... unto a perfect man, unto the measure of the stature of the fulness of Christ."<span class="verse-ref">Ephesians 4:13</span></p>
+    <p>We stopped trying to close the distance between us directly. We started trying to close the distance between each of us and God instead.</p>
+  </section>
+
+  <!-- CHAPTER: THE REAL DESTINATION -->
+  <section class="chapter text-chapter" data-growth="0.55">
+    <p class="label">Where we hope this is going</p>
+    <h2>To be joined together, in Him</h2>
+    <svg class="cross-ornament" width="28" height="40" viewBox="0 0 28 40">
+      <line x1="14" y1="2" x2="14" y2="38" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="3" y1="13" x2="25" y2="13" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <p class="verse">"For this cause shall a man leave his father and mother, and shall be joined unto his wife, and they two shall be one flesh. This is a great mystery: but I speak concerning Christ and the church."<span class="verse-ref">Ephesians 5:31&ndash;32</span></p>
+    <p>We don't mean that as a figure of speech. We mean it plainly &mdash; God willing, our destination is to be united to each other, by and with Christ Himself, in the Church, through the Mystery of Matrimony. Not symbolically. Really.</p>
+    <p class="verse">"What therefore God hath joined together, let not man put asunder."<span class="verse-ref">Matthew 19:6</span></p>
+    <p>That's why the Church can never undo a marriage crowned within her &mdash; how could anyone come between what God Himself has joined by the Holy Spirit, in such a mystery? Saint John Chrysostom preached that a marriage lived this way isn't an ordinary bond between two people, but something closer to a small church of its own &mdash; a place where two are drawn toward God together.</p>
+    <p>There's still work ahead of us before we're ready for that &mdash; some of it mine alone, some of it yours alone, and some of it ours together. We know what most of it is.</p>
+  </section>
+
+  <!-- CHAPTER: THANKSGIVING -->
+  <section class="chapter text-chapter" data-growth="0.85">
+    <p class="label">So before anything else, tonight</p>
+    <h2>Thank You</h2>
+    <p>This year we grew closer, we learned so much about each other, and about ourselves. We also fell &mdash; together sometimes, and separately in our own ways. But by God's grace, we stood back up, clung to Him, and kept going.</p>
+    <p class="emphasis">One thing I'm sure of: I wouldn't be where I am without you, Angie.</p>
+
+    <div class="mini-question">
+      <p style="color:var(--muted); font-size:0.95rem;">Do you feel the same as well?</p>
+      <div class="q-buttons">
+        <button data-yes>Yes</button>
+        <button data-no>No</button>
+      </div>
+      <p class="q-reveal" id="mini-reveal"></p>
+    </div>
+
+    <p class="verse" style="margin-top:2.4rem;">"What shall I render unto the LORD for all his benefits toward me?"<span class="verse-ref">Psalm 116:12</span></p>
+    <p>Lord, thank You for where You've brought us. We ask You again &mdash; lead us the rest of the way.</p>
+  </section>
+
+  <!-- CHAPTER: FINAL -->
+  <section class="chapter final-chapter" data-growth="1">
+    <video id="final-video" src="video/1000031519.mp4" autoplay muted loop playsinline></video>
+    <div class="final-scrim"></div>
+
+    <svg class="triangle-diagram" viewBox="0 0 200 160" style="width:min(78vw,300px)">
+      <defs>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <line x1="80" y1="100" x2="100" y2="55" stroke="var(--green)" stroke-width="2" stroke-opacity="0.85"/>
+      <line x1="120" y1="100" x2="100" y2="55" stroke="var(--pink)" stroke-width="2" stroke-opacity="0.85"/>
+      <line x1="80" y1="100" x2="120" y2="100" stroke="var(--muted)" stroke-width="2" stroke-opacity="0.85"/>
+      <g transform="translate(100,55)" filter="url(#glow)">
+        <line x1="0" y1="-9" x2="0" y2="9" stroke="var(--gold-bright)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="-6" y1="-3" x2="6" y2="-3" stroke="var(--gold-bright)" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <circle cx="80" cy="100" r="9" fill="var(--green)"/>
+      <circle cx="120" cy="100" r="9" fill="var(--pink)"/>
+      <text x="80" y="120" text-anchor="middle" class="you-label">YOU</text>
+      <text x="120" y="120" text-anchor="middle" class="her-label">HER</text>
+    </svg>
+    <p class="label">One year, by His grace</p>
+    <h2>Will you come sit by the water with me again? <span class="aside">(come on, our future selves are waiting for you.)</span></h2>
+    <button id="final-answer">Yes</button>
+    <p id="final-reveal">Meet me at my house &mdash; 4 o'clock, Central African Time. Dress comfortably, but don't let that stop you from being your usual beautiful self. We're heading down the mountain together, chasing a better spot to make camp &mdash; because after a year like this one, we deserve a proper view.</p>
+  </section>
+
+</main>
+
+<script>
+/* ============================================================
+   EDIT EVERYTHING IN THIS CONFIG BLOCK.
+   For each photo, "src" is the filename of the photo sitting in
+   the SAME FOLDER as this HTML file (e.g. a "photos" folder next
+   to journey.html, referenced as "photos/avis-dam-1.jpg").
+   Videos (.mp4/.mov/.webm) are auto-detected and played full-screen.
+   ============================================================ */
+const CONFIG = {
+  herName: "Angie",
+  titleLine: "One Year",
+
+  /* Every photo, in roughly chronological order (Oct 2025 -> Aug 2026).
+     No captions here anymore — they drift past on the side rails as
+     plain photos, not commentary. */
+  photos: [
+    "images/1000000283.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_425.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1636.jpg",
+    "images/1000000197.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1560.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1551.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1659.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_450.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1473.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1470.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1468.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1650.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1668.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1669.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1658.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1656.jpg",
+    "images/1000000218.webp",
+    "images/1000000219.webp",
+    "images/1000000222.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_623.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_613.jpg",
+    "images/1000000338.jpg",
+    "images/1000000339.jpg",
+    "images/1000000342.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_381.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_358.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_355.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_352.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_351.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1707.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1720.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1721.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1744.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1747.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1759.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_1770.jpg",
+    "images/1000031513.jpg",
+    "images/1000031549.jpg",
+    "images/1000031560.jpg",
+    "images/1000000391.jpg",
+    "images/1000000392.jpg",
+    "images/1000000397.jpg",
+    "images/1000000398.jpg",
+    "images/1000000399.jpg",
+    "images/0c89efb8-fc40-47c1-b90d-597476749fbd-1_all_28.jpg",
+    "images/1000000448.jpg",
+    "images/1000000451.jpg",
+    "images/1000018316.jpg",
+    "images/1000019131.jpg",
+    "images/1000019204.jpg",
+    "images/1000019206.jpg",
+    "images/1000020360.jpg",
+    "images/1000020362.jpg",
+    "images/1000020363.jpg",
+    "images/1000020365.jpg",
+    "images/1000020366.jpg",
+    "images/1000023197.jpg",
+    "images/1000023894.jpg",
+    "images/1000023902.jpg",
+    "images/1000023889.jpg",
+    "images/1000023892.jpg",
+    "images/1000023917.jpg",
+    "images/1000023918.jpg",
+    "images/1000023903.jpg",
+    "images/1000024211.jpg",
+    "images/1000032245.jpg",
+    "images/1000032289.jpg",
+    "images/1000032456.jpg",
+    "images/1000036111.jpg",
+    "images/1000036121.jpg",
+    "images/1000036122.jpg",
+    "images/1000039955.webp",
+    "images/1000053146.jpg",
+    "images/1000053427.jpg",
+    "images/1000058090.jpg",
+    "images/1000058126.jpg",
+    "images/1000058191.jpg",
+    "images/1000058210.jpg",
+    "images/1000059631.jpg",
+    "images/1000060496.jpg",
+    "images/1000060563.jpg",
+    "images/1000060566.jpg",
+    "images/1000063524.jpg",
+    "images/1000063705.jpg",
+    "images/1000066344.jpg",
+    "images/1000066345.jpg",
+    "images/1000066366.jpg",
+    "images/1000066372.jpg",
+    "images/1000067134.jpg",
+    "images/1000067137.jpg",
+    "images/1000067894.jpg",
+  ],
+};
+
+document.getElementById('title-name').textContent = CONFIG.titleLine;
+document.getElementById('title-names').textContent = CONFIG.herName;
+
+/* ============================================================
+   SIDE PHOTO RAILS
+   No photo gets its own page or its own caption anymore. Instead
+   every photo just drifts down two quiet columns at the edges of
+   the screen — left and right moving in opposite directions — while
+   you scroll through the actual words in the middle.
+   ============================================================ */
+const leftPhotos = CONFIG.photos.filter((_, i) => i % 2 === 0);
+const rightPhotos = CONFIG.photos.filter((_, i) => i % 2 === 1);
+
+function buildRail(trackEl, photos){
+  trackEl.innerHTML = '';
+  for(let rep = 0; rep < 2; rep++){
+    photos.forEach(src => {
+      const tile = document.createElement('div');
+      tile.className = 'rail-tile';
+      const img = document.createElement('img');
+      img.src = src;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.alt = '';
+      tile.appendChild(img);
+      trackEl.appendChild(tile);
+    });
+  }
+}
+
+const trackLeft = document.getElementById('rail-track-left');
+const trackRight = document.getElementById('rail-track-right');
+buildRail(trackLeft, leftPhotos);
+buildRail(trackRight, rightPhotos);
+
+function wrap(value, mod){
+  if(mod <= 0) return 0;
+  return ((value % mod) + mod) % mod;
+}
+
+/* The rails never stand still — they drift on their own at a slow,
+   steady pace all the time, and scrolling just adds extra push on
+   top of that constant drift, so they're always alive even if you
+   stop scrolling to read. */
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const AUTO_LEFT_PX_PER_SEC = reduceMotion ? 0 : 16;
+const AUTO_RIGHT_PX_PER_SEC = reduceMotion ? 0 : 12;
+const SCROLL_LEFT_FACTOR = 0.22;
+const SCROLL_RIGHT_FACTOR = 0.16;
+
+let leftAuto = 0;
+let rightAuto = 0;
+let lastTs = null;
+
+function tick(ts){
+  if(lastTs === null) lastTs = ts;
+  const dt = (ts - lastTs) / 1000;
+  lastTs = ts;
+  leftAuto += dt * AUTO_LEFT_PX_PER_SEC;
+  rightAuto += dt * AUTO_RIGHT_PX_PER_SEC;
+
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  const halfLeft = trackLeft.scrollHeight / 2;
+  const halfRight = trackRight.scrollHeight / 2;
+
+  /* left rail drifts upward, on its own and faster as you scroll down */
+  const leftOffset = wrap(scrollY * SCROLL_LEFT_FACTOR + leftAuto, halfLeft);
+  trackLeft.style.transform = `translateY(${-leftOffset}px)`;
+
+  /* right rail drifts downward, opposite feel */
+  const rightOffset = wrap(scrollY * SCROLL_RIGHT_FACTOR + rightAuto, halfRight);
+  trackRight.style.transform = `translateY(${-halfRight + rightOffset}px)`;
+
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ---- scroll-triggered fade-in + growth/convergence tracking ---- */
+const chapters = document.querySelectorAll('.chapter');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add('in-view');
+      const growth = parseFloat(entry.target.getAttribute('data-growth') || '0');
+      updateIndicator(growth);
+      if(entry.target.id === 'chapter-triangle-intro'){
+        showGrowthTooltip();
+      }
+    }
+  });
+}, { threshold: 0.4 });
+chapters.forEach(ch => observer.observe(ch));
+
+/* ---- growth-indicator tooltip: once you've scrolled past the title,
+   point at the triangle in the corner and explain what it's doing ---- */
+let growthTooltipShown = false;
+function showGrowthTooltip(){
+  if(growthTooltipShown) return;
+  growthTooltipShown = true;
+  const tooltip = document.getElementById('growth-tooltip');
+  tooltip.classList.add('shown');
+  const autoHide = setTimeout(() => tooltip.classList.remove('shown'), 8000);
+  document.getElementById('growth-tooltip-close').addEventListener('click', () => {
+    clearTimeout(autoHide);
+    tooltip.classList.remove('shown');
+  });
+}
+
+/* As growth increases: the two base points converge toward each
+   other AND move up toward the apex (the triangle physically
+   shrinks — closer to each other, closer to God) while the apex
+   cross itself grows larger and brighter (He becomes bigger to us
+   as we draw near). */
+function updateIndicator(t){
+  const Lx = 20 + t*18, Rx = 80 - t*18;
+  const By = 78 - t*18;
+  const apexY = 18 + t*16;
+  const scale = 0.5 + t*0.9;
+
+  document.getElementById('dotL').setAttribute('cx', Lx);
+  document.getElementById('dotL').setAttribute('cy', By);
+  document.getElementById('dotL').setAttribute('r', 3 + t*2.5);
+  document.getElementById('dotR').setAttribute('cx', Rx);
+  document.getElementById('dotR').setAttribute('cy', By);
+  document.getElementById('dotR').setAttribute('r', 3 + t*2.5);
+  document.getElementById('baseLine').setAttribute('x1', Lx);
+  document.getElementById('baseLine').setAttribute('y1', By);
+  document.getElementById('baseLine').setAttribute('x2', Rx);
+  document.getElementById('baseLine').setAttribute('y2', By);
+  document.getElementById('sideL').setAttribute('x1', Lx);
+  document.getElementById('sideL').setAttribute('y1', By);
+  document.getElementById('sideL').setAttribute('x2', 50);
+  document.getElementById('sideL').setAttribute('y2', apexY);
+  document.getElementById('sideR').setAttribute('x1', Rx);
+  document.getElementById('sideR').setAttribute('y1', By);
+  document.getElementById('sideR').setAttribute('x2', 50);
+  document.getElementById('sideR').setAttribute('y2', apexY);
+  document.getElementById('sideL').setAttribute('stroke-opacity', 0.3 + t*0.5);
+  document.getElementById('sideR').setAttribute('stroke-opacity', 0.3 + t*0.5);
+  document.getElementById('apexCross').setAttribute('transform', `translate(50,${apexY}) scale(${scale})`);
+}
+
+/* ---- mini question (thanksgiving chapter) ---- */
+const miniReveal = document.getElementById('mini-reveal');
+document.querySelector('[data-yes]').addEventListener('click', () => {
+  miniReveal.textContent = "Good. Because I could never have gotten here without you either.";
+  miniReveal.classList.add('shown');
+});
+document.querySelector('[data-no]').addEventListener('click', () => {
+  miniReveal.textContent = "That's okay — however you feel, I'm just glad you're here, walking this with me.";
+  miniReveal.classList.add('shown');
+});
+
+/* ---- final reveal ---- */
+document.getElementById('final-answer').addEventListener('click', () => {
+  const reveal = document.getElementById('final-reveal');
+  reveal.classList.add('shown');
+  reveal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  /* the video of us just sitting there waiting has done its job —
+     let it dissolve away once she's actually answered */
+  const finalVideo = document.getElementById('final-video');
+  if(finalVideo){
+    finalVideo.classList.add('dissolved');
+    setTimeout(() => finalVideo.pause(), 2000);
+  }
+});
+
+/* ============================================================
+   AMBIENT BACKGROUND VIDEO + SOUND
+   Plays quietly the whole time you're on the page — the picture sits
+   dimmed behind absolutely everything (rails, chapters, the lot),
+   and its own sound is the site's soundtrack. Most browsers won't
+   allow video to autoplay with sound until you've actually interacted
+   with the page, so this tries immediately and otherwise just waits
+   for your first click/scroll/key/touch, then starts right up.
+   ============================================================ */
+const bgVideo = document.getElementById('bg-video');
+const audioToggle = document.getElementById('audio-toggle');
+const BG_VIDEO_VOLUME = 0.45;
+bgVideo.volume = 0;
+
+function fadeBgVideoIn(){
+  const step = () => {
+    if(bgVideo.muted){ return; }
+    bgVideo.volume = Math.min(BG_VIDEO_VOLUME, bgVideo.volume + 0.02);
+    if(bgVideo.volume < BG_VIDEO_VOLUME){
+      requestAnimationFrame(step);
+    }
+  };
+  requestAnimationFrame(step);
+}
+
+function tryPlayBgVideo(){
+  const playPromise = bgVideo.play();
+  if(playPromise && playPromise.then){
+    playPromise.then(fadeBgVideoIn).catch(() => { /* blocked until a real gesture happens */ });
+  }
+}
+tryPlayBgVideo();
+
+function resumeBgVideoOnGesture(){
+  if(bgVideo.paused && !bgVideo.muted){
+    tryPlayBgVideo();
+  }
+}
+['click', 'touchstart', 'keydown', 'scroll'].forEach(evt =>
+  window.addEventListener(evt, resumeBgVideoOnGesture, { once: true, passive: true })
+);
+
+/* ---- sound toggle (bottom-left speaker) ---- */
+const audioWaves = [document.getElementById('audio-wave1'), document.getElementById('audio-wave2')];
+const audioMuteSlash = document.getElementById('audio-mute-slash');
+
+function setAudioIcon(muted){
+  audioWaves.forEach(w => { w.style.display = muted ? 'none' : ''; });
+  audioMuteSlash.style.display = muted ? '' : 'none';
+  audioToggle.setAttribute('aria-pressed', String(!muted));
+}
+
+audioToggle.addEventListener('click', () => {
+  bgVideo.muted = !bgVideo.muted;
+  setAudioIcon(bgVideo.muted);
+  if(!bgVideo.muted){
+    if(bgVideo.paused){
+      tryPlayBgVideo();
+    } else if(bgVideo.volume < BG_VIDEO_VOLUME){
+      fadeBgVideoIn();
+    }
+  }
+});
+</script>
+</body>
+</html>
